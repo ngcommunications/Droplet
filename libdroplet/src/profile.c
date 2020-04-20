@@ -71,7 +71,7 @@ list_ssl_method_authorized[] = {
   { .name = SSL_TXT_TLSV1_2, .fn = TLSv1_2_method },
 #endif
 #endif
-  { .name = "",            .fn = NULL         }
+  { .name = "",              .fn = NULL         }
 };
 
 static void
