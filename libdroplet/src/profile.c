@@ -49,6 +49,9 @@ struct ssl_method_authorized {
 
 static struct ssl_method_authorized
 list_ssl_method_authorized[] = {
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  { .name = SSL_TXT_TLSV1,   .fn = TLS_method   },
+#else
 #ifndef OPENSSL_NO_SSL2
 #ifdef SSL_TXT_SSLV2
   { .name = SSL_TXT_SSLV2,   .fn = SSLv2_method   },
@@ -67,7 +70,8 @@ list_ssl_method_authorized[] = {
 #ifdef SSL_TXT_TLSV1_2
   { .name = SSL_TXT_TLSV1_2, .fn = TLSv1_2_method },
 #endif
-  { .name = "",              .fn = NULL           }
+#endif
+  { .name = "",            .fn = NULL         }
 };
 
 static void
@@ -801,23 +805,6 @@ dpl_profile_init(dpl_ctx_t *ctx,
       return DPL_ENOMEM;
 
   return DPL_SUCCESS;
-}
-
-static int
-ssl_verify_cert(X509_STORE_CTX *cert, void *arg)
-{
-  dpl_ctx_t     *ctx = (dpl_ctx_t *) arg;
-  char          buffer[256];
-
-  DPL_TRACE(ctx, DPL_TRACE_SSL, "Server certificates:");
-
-  X509_NAME_oneline(X509_get_subject_name(cert->cert), buffer, sizeof(buffer));
-  DPL_TRACE(ctx, DPL_TRACE_SSL, "Subject: %s", buffer);
-
-  X509_NAME_oneline(X509_get_issuer_name(cert->cert), buffer, sizeof(buffer));
-  DPL_TRACE(ctx, DPL_TRACE_SSL, "Issuer: %s", buffer);
-
-  return 1;
 }
 
 static dpl_status_t

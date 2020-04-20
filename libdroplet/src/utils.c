@@ -555,14 +555,28 @@ dpl_hmac(const char *key_buf,
          char *digest_buf,
          const EVP_MD *md)
 {
-  HMAC_CTX ctx;
+  HMAC_CTX *ctx = NULL;
   u_int digest_len;
 
-  HMAC_CTX_init(&ctx);
-  HMAC_Init_ex(&ctx, key_buf, key_len, md, NULL);
-  HMAC_Update(&ctx, (u_char *) data_buf, data_len);
-  HMAC_Final(&ctx, (u_char *) digest_buf, &digest_len);
-  HMAC_CTX_cleanup(&ctx);
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  ctx = HMAC_CTX_new();
+  HMAC_CTX_reset(ctx);
+#else
+  HMAC_CTX ctx_obj;
+  ctx = &ctx_obj;
+  HMAC_CTX_init(ctx);
+#endif
+
+  HMAC_Init_ex(ctx, key_buf, key_len, md, NULL);
+  HMAC_Update(ctx, (u_char *) data_buf, data_len);
+  HMAC_Final(ctx, (u_char *) digest_buf, &digest_len);
+
+#if (OPENSSL_VERSION_NUMBER >= 0x10100000L)
+  HMAC_CTX_reset(ctx);
+  HMAC_CTX_free(ctx);
+#else
+  HMAC_CTX_cleanup(ctx);
+#endif
 
   return digest_len;
 }
